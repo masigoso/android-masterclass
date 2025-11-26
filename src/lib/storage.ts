@@ -15,6 +15,12 @@ export async function addPhoto(photo: Photo) {
   }
 }
 
+export async function getAllPhotos(): Promise<Photo[]> {
+  const db = await getDB();
+  const photos = await db.getAll('photos');
+  return photos.sort((a, b) => b.timestamp - a.timestamp);
+}
+
 export async function getPhotosByAlbum(albumId: string): Promise<Photo[]> {
   const db = await getDB();
   return db.getAllFromIndex('photos', 'by-album', albumId);
