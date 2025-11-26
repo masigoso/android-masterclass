@@ -63,18 +63,22 @@ export function PhotoGrid({
           )}
           <div className="grid grid-cols-3 gap-2">
             {groupPhotos.map((photo) => (
-              <div key={photo.id} className="relative aspect-square group">
+              <div 
+                key={photo.id} 
+                className="relative aspect-square group overflow-hidden rounded-lg"
+              >
                 <img
                   src={photo.uri}
                   alt=""
-                  className="w-full h-full object-cover rounded-lg cursor-pointer"
+                  className="w-full h-full object-cover cursor-pointer transition-transform duration-200 group-hover:scale-110"
                   onClick={() => onPhotoClick(photo)}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Checkbox
                     checked={selectedPhotos.has(photo.id)}
                     onCheckedChange={() => onPhotoSelect(photo.id)}
-                    className="bg-background/80 backdrop-blur"
+                    className="bg-background/90 backdrop-blur-sm border-2"
                   />
                 </div>
               </div>

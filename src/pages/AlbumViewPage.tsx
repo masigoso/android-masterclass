@@ -5,7 +5,7 @@ import { getPhotosByAlbum, addPhoto, createEvent, getEventsByAlbum } from "@/lib
 import { PhotoGrid } from "@/components/PhotoGrid";
 import { CreateEventDialog } from "@/components/CreateEventDialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, MoreVertical, Calendar, Grid3X3 } from "lucide-react";
+import { ArrowLeft, Plus, MoreVertical, Calendar, Grid3X3, Camera as CameraIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +13,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { usePhotoGallery } from "@/hooks/usePhotoGallery";
 
 export default function AlbumViewPage() {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { pickPhotosFromGallery, takePhoto } = usePhotoGallery();
   
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -46,35 +48,42 @@ export default function AlbumViewPage() {
     }
   }
 
-  async function handleAddPhotos() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.multiple = true;
+  async function handleAddPhotosFromGallery() {
+    if (!albumId) return;
     
-    input.onchange = async (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (!files || !albumId) return;
+    const galleryPhotos = await pickPhotosFromGallery();
+    
+    if (galleryPhotos.length === 0) return;
 
-      for (const file of Array.from(files)) {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-          const uri = event.target?.result as string;
-          await addPhoto({
-            id: crypto.randomUUID(),
-            uri,
-            timestamp: Date.now(),
-            albumId,
-          });
-          loadPhotos();
-        };
-        reader.readAsDataURL(file);
-      }
-      
-      toast({ title: `Додано ${files.length} фото` });
-    };
+    for (const galleryPhoto of galleryPhotos) {
+      await addPhoto({
+        id: crypto.randomUUID(),
+        uri: galleryPhoto.webviewPath || galleryPhoto.filepath,
+        timestamp: galleryPhoto.timestamp,
+        albumId,
+      });
+    }
     
-    input.click();
+    loadPhotos();
+    toast({ title: `Додано ${galleryPhotos.length} фото` });
+  }
+
+  async function handleTakePhoto() {
+    if (!albumId) return;
+    
+    const photo = await takePhoto();
+    
+    if (!photo) return;
+
+    await addPhoto({
+      id: crypto.randomUUID(),
+      uri: photo.webviewPath || photo.filepath,
+      timestamp: photo.timestamp,
+      albumId,
+    });
+    
+    loadPhotos();
+    toast({ title: "Фото додано" });
   }
 
   function togglePhotoSelection(photoId: string) {
@@ -163,10 +172,24 @@ export default function AlbumViewPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={handleAddPhotos}>
-                <Plus className="w-5 h-5 mr-2" />
-                Додати фото
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button>
+                    <Plus className="w-5 h-5 mr-2" />
+                    Додати фото
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleAddPhotosFromGallery}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    З галереї
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleTakePhoto}>
+                    <CameraIcon className="w-4 h-4 mr-2" />
+                    Зробити фото
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
