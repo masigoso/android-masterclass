@@ -1,14 +1,22 @@
 import { getDB, Album, Photo, Event } from './db';
 import { getPhotoForAlbum } from './photoAssets';
 
-export async function initializeMockData() {
+export async function initializeMockData(forceReinitialize = false) {
   const db = await getDB();
   
   // Check if data already exists
   const existingAlbums = await db.getAll('albums');
-  if (existingAlbums.length > 0) {
+  if (existingAlbums.length > 0 && !forceReinitialize) {
     console.log('Mock data already exists');
     return;
+  }
+  
+  // Clear existing data if force reinitialize
+  if (forceReinitialize) {
+    console.log('Force reinitializing - clearing existing data...');
+    await db.clear('photos');
+    await db.clear('albums');
+    await db.clear('events');
   }
 
   console.log('Initializing mock data...');
