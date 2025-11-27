@@ -17,7 +17,8 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    initializeMockData();
+    // Force reinitialize to use new real photos
+    initializeMockData(true);
   }, []);
 
   return (

@@ -1,5 +1,16 @@
 import { getDB, Photo, Album, Event } from './db';
 
+export async function clearAllData() {
+  const db = await getDB();
+  
+  // Clear all stores
+  await db.clear('photos');
+  await db.clear('albums');
+  await db.clear('events');
+  
+  console.log('All data cleared from IndexedDB');
+}
+
 export async function addPhoto(photo: Photo) {
   const db = await getDB();
   await db.add('photos', photo);
