@@ -1,4 +1,5 @@
 import { getDB, Album, Photo, Event } from './db';
+import { getPhotoForAlbum } from './photoAssets';
 
 export async function initializeMockData() {
   const db = await getDB();
@@ -143,7 +144,7 @@ export async function initializeMockData() {
     for (let j = 0; j < photoCount; j++) {
       const photo: Photo = {
         id: `photo-${album.id}-${j}`,
-        uri: `https://picsum.photos/seed/${album.id}-${j}/800/600`,
+        uri: getPhotoForAlbum(album.id, j),
         timestamp: albumStartDate + j * dayMs * 0.5, // Photos spread over time
         albumId: album.id,
       };
